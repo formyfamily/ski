@@ -3260,7 +3260,6 @@ int main(int argc, char **argv, char **envp)
 	
 
     atexit(qemu_run_exit_notifiers);
-
     error_set_progname(argv[0]);
 
     g_mem_set_vtable(&mem_trace);

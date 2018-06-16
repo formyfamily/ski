@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "chrono": "c",
+        "limits": "c",
+        "valarray": "c",
+        "*.tcc": "c",
+        "streambuf": "c",
+        "*.code": "c"
+    }
+}

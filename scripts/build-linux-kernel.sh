@@ -17,7 +17,7 @@ log_msg(){
 
 
 
-SKI_DIR=${SKI_DIR-"$HOME/ski/"}
+SKI_DIR=${SKI_DIR-"$HOME/SKI/ski"}
 
 
 # SKI_KERNEL_PACKAGE_URL=

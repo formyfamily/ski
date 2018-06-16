@@ -7,8 +7,8 @@
 
 ## Default directories values: update or override them ##
 SKI_TMP=${SKI_TMP-"/dev/shm/ski-user/tmp/"}
-SKI_DIR=${SKI_DIR-"$HOME/ski/"}
-
+SKI_DIR=${SKI_DIR-"$HOME/SKI/ski/"}
+UCORE_DIR=${UCORE_DIR-"$HOME/osLab/ucore_plus"}
 
 error_msg(){
 	echo "[RUN-SKI-CREATE-SNAPSHOT.SH] ERROR: $1"
@@ -24,7 +24,7 @@ log_msg(){
 export SKI_VMM_SSH_LOCAL_PORT=10001
 
 VMM_BINARY=$SKI_DIR/vmm-install/bin/qemu-system-i386
-VMM_RAM_MB=512
+VMM_RAM_MB=1024
 VMM_CPUS=4
 VMM_BOOTLOADER_LINUX_APPEND="root=/dev/hda1 rootfstype=ext4 rw -verbose console=tty0 console=ttyS0"
 VMM_MISC_OPTIONS="-rtc base=utc,clock=vm -qmp tcp:localhost:10000,server,nowait -net nic -net user,hostfwd=tcp::$SKI_VMM_SSH_LOCAL_PORT-:22 -vnc :1"
@@ -40,31 +40,31 @@ TESTCASE_PACKAGE_RESULT_FILENAME=${TESTCASE_PACKAGE_BASEDIR}_result.tgz
 if ! [ -x $VMM_BINARY ] ; then error_msg "Unable to find the binary at $VMM_BINARY. Make sure that SKI_DIR is correctly defined (SKI_DIR=$SKI_DIR)."; fi
 if [ -z "$SKI_VM_FILENAME" ] || ! [ -f "$SKI_VM_FILENAME" ] ; then  error_msg "Need to set SKI_VM_FILENAME to a valid VM image (SKI_VM_FILENAME=$SKI_VM_FILENAME)"; fi
 if ! [ -d "$SKI_OUTPUT_DIR" ] ; then  mkdir $SKI_OUTPUT_DIR || error_msg "Need create the output directory (SKI_OUTPUT_DIR=$SKI_OUTPUT_DIR)."; fi
-if ! [ -d "$SKI_TESTCASE_DIR" ] ; then error_msg "Unable to read the testcase directory (SKI_TESTCASE_DIR = $SKI_TESTCASE_DIR)."; fi
-if ! [ -x "$SKI_TESTCASE_DIR/$RUN_SCRIPT" ] ; then error_msg "Unable to find the executable run script in the testcase directory ($SKI_TESTCASE_DIR/$RUN_SCRIPT)."; fi
-if ! [ -x "$SKI_TESTCASE_DIR/$PACK_SCRIPT" ] ; then error_msg "Unable to find the executable pack script in the testcase directory ($SKI_TESTCASE_DIR/$PACK_SCRIPT)."; fi
-if [ -z $TESTCASE_PACKAGE_BASEDIR ] || [[ "$TESTCASE_PACKAGE_BASEDIR" == *"/"* ]] ; then error_msg "Invalid package filename  ($TESTCASE_PACKAGE_BASEDIR)."; fi
+#if ! [ -d "$SKI_TESTCASE_DIR" ] ; then error_msg "Unable to read the testcase directory (SKI_TESTCASE_DIR = $SKI_TESTCASE_DIR)."; fi
+#if ! [ -x "$SKI_TESTCASE_DIR/$RUN_SCRIPT" ] ; then error_msg "Unable to find the executable run script in the testcase directory ($SKI_TESTCASE_DIR/$RUN_SCRIPT)."; fi
+#if ! [ -x "$SKI_TESTCASE_DIR/$PACK_SCRIPT" ] ; then error_msg "Unable to find the executable pack script in the testcase directory ($SKI_TESTCASE_DIR/$PACK_SCRIPT)."; fi
+#if [ -z $TESTCASE_PACKAGE_BASEDIR ] || [[ "$TESTCASE_PACKAGE_BASEDIR" == *"/"* ]] ; then error_msg "Invalid package filename  ($TESTCASE_PACKAGE_BASEDIR)."; fi
 if ! [ -x $LOADTESTSUIT_SCRIPT ] ; then error_msg "Unable to find load-testsuit.sh ($LOADTESTSUIT_SCRIPT)" ; fi
 
 
-log_msg "Running the testcase packing script ($SKI_TESTCASE_DIR/$PACK_SCRIPT)..." > /dev/null
-pushd $SKI_TESTCASE_DIR/ > /dev/null
-./$PACK_SCRIPT
-PACK_RESULT=$?
-if [ $PACK_RESULT -ne 0 ]; then error_msg "Unable to sucessfully run the pack script ($SKI_TESTCASE_DIR/$PACK_SCRIPT)"; fi
-popd > /dev/null
+log_msg "Running the testcase packing script ($SKI_TESTCASE_DIR/$PACK_SCRIPT)..." 
+#pushd $SKI_TESTCASE_DIR/ > /dev/null
+#./$PACK_SCRIPT
+#PACK_RESULT=$?
+#if [ $PACK_RESULT -ne 0 ]; then error_msg "Unable to sucessfully run the pack script ($SKI_TESTCASE_DIR/$PACK_SCRIPT)"; fi
+#popd > /dev/null
 
 log_msg "Creating the testcase package..."
-pushd $SKI_TESTCASE_DIR/.. > /dev/null
-if [ -f $TESTCASE_PACKAGE_FILENAME ] ; then rm $TESTCASE_PACKAGE_FILENAME; log_msg "Deleted the existing testcase package file";  fi
-log_msg "Packing directory $TESTCASE_PACKAGE_BASEDIR into archive $TESTCASE_PACKAGE_FILENAME..."
-tar --totals -czf $TESTCASE_PACKAGE_FILENAME $TESTCASE_PACKAGE_BASEDIR > /dev/null
-TAR_RESULT=$?
-if [ $TAR_RESULT -ne 0 ]; then error_msg "Unable to create the testcase package tar file"; fi
-ls -l $TESTCASE_PACKAGE_FILENAME
-TESTCASE_PACKAGE_PATH=`pwd`/$TESTCASE_PACKAGE_FILENAME
-popd > /dev/null
-echo_log " -> Created the testcase package: $TESTCASE_PACKAGE_PATH "
+#pushd $SKI_TESTCASE_DIR/.. > /dev/null
+#if [ -f $TESTCASE_PACKAGE_FILENAME ] ; then rm $TESTCASE_PACKAGE_FILENAME; log_msg "Deleted the existing testcase package file";  fi
+#log_msg "Packing directory $TESTCASE_PACKAGE_BASEDIR into archive $TESTCASE_PACKAGE_FILENAME..."
+#tar --totals -czf $TESTCASE_PACKAGE_FILENAME $TESTCASE_PACKAGE_BASEDIR > /dev/null
+#TAR_RESULT=$?
+#if [ $TAR_RESULT -ne 0 ]; then error_msg "Unable to create the testcase package tar file"; fi
+#ls -l $TESTCASE_PACKAGE_FILENAME
+#TESTCASE_PACKAGE_PATH=`pwd`/$TESTCASE_PACKAGE_FILENAME
+#popd > /dev/null
+#echo_log " -> Created the testcase package: $TESTCASE_PACKAGE_PATH "
 
 
 
@@ -125,14 +125,19 @@ export SKI_PRIORITIES_FILENAME=$SKI_DIR/config/fsstress.priorities
 #export SKI_IPFILTER_FILENAME=
 
 # XXX: This applies for linux case; for other OSs QEMU is not so convenient so need to modify the VM image to change kernel options
-export SKI_APPEND_COMMAND=root="/dev/hda1 rootfstype=ext4 rw -verbose console=tty0 console=ttyS0"
+export SKI_APPEND_COMMAND="" #"root=/dev/hda1 rootfstype=ext4 rw -verbose console=tty0 console=ttyS0"
 
 
 log_msg "Running SKI process in the background"
 #gdb -ex "set follow-fork-mode child" --args 
-$VMM_BINARY -m "$VMM_RAM_MB" -smp "$VMM_CPUS" -kernel "$SKI_KERNEL_FILENAME" -append "$SKI_APPEND_COMMAND" -hda "$VMM_HDA_FILENAME" -serial "$VMM_SERIAL_FILENAME" $VMM_MISC_OPTIONS $VMM_SKI_ARGS & 
+$VMM_BINARY -m "$VMM_RAM_MB" -hda "$SKI_KERNEL_FILENAME" -drive file="$VMM_HDA_FILENAME",media=disk,cache=writeback,index=2 -serial "$VMM_SERIAL_FILENAME" $VMM_MISC_OPTIONS $VMM_SKI_ARGS & 
+# -smp "$VMM_CPUS" -append "$SKI_APPEND_COMMAND"
 # Save the QEMU PID for the testsuit loader
 export SKI_VMM_PID=$!
+log_msg "Waiting VMM to finish ..."
+wait $SKI_VMM_PID
+log_msg "wait finished"
+exit
 
 # Lunch the testsuit loader
 log_msg "Spawning in the background the testsuit loader..."
